@@ -1,0 +1,47 @@
+name: Build TransportSync (Electron .exe + Flutter .apk)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-electron:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Install dependencies
+        run: |
+          cd electron-react-app
+          npm install
+      - name: Build Electron App
+        run: |
+          cd electron-react-app
+          npm run build
+          npm run package-win
+      - name: Upload Electron Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: electron-artifacts
+          path: electron-react-app/dist
+
+  build-flutter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.22.0'
+      - name: Build Flutter APK
+        run: |
+          cd flutter-app
+          flutter pub get
+          flutter build apk --release
+      - name: Upload Flutter APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: flutter-apk
+          path: flutter-app/build/app/outputs/flutter-apk/app-release.apk
