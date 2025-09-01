@@ -1,0 +1,73 @@
+
+name: Build TransportSync (Electron .exe + Flutter .apk)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-electron:
+    name: Build Electron (Windows .exe)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies (Electron app)
+        working-directory: ./electron-react-app
+        run: npm install --legacy-peer-deps
+
+      - name: Build UI (Vite)
+        working-directory: ./electron-react-app
+        run: npm run build:ui
+
+      - name: Build Electron installer (.exe) using electron-builder
+        working-directory: ./electron-react-app
+        env:
+          CSC_LINK: ${{ secrets.CSC_LINK }} # optional if code-signing
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+        run: |
+          npm run dist
+
+      - name: Upload Electron artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: electron-artifacts
+          path: ./electron-react-app/dist/**/*
+
+  build-flutter:
+    name: Build Flutter APK (Android .apk)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 'stable'
+
+      - name: Accept Android licenses
+        run: yes | sdkmanager --licenses || true
+
+      - name: Install dependencies (Flutter)
+        working-directory: ./flutter-app
+        run: flutter pub get
+
+      - name: Build APK (release)
+        working-directory: ./flutter-app
+        env:
+          JAVA_HOME: /usr/lib/jvm/java-11-openjdk-amd64
+        run: flutter build apk --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-apk
+          path: ./flutter-app/build/app/outputs/flutter-apk/*.apk

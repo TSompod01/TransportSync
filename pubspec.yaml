@@ -1,0 +1,23 @@
+name: transport_sync_flutter
+description: Transport Finance app - prototype
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=2.18.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+  shared_preferences: ^2.0.15
+  intl: ^0.18.0
+  firebase_core: ^2.20.0
+  cloud_firestore: ^4.8.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
